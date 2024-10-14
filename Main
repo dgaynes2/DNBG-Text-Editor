@@ -1,0 +1,66 @@
+import tkinter as tk
+import tkinter.scrolledtext
+
+import Categories
+import Menu
+import SaveLoad
+import FindReplace
+import FontSettings
+import Align
+import StatusBar
+
+
+class WordProcessor:
+    def __init__(self,root=tk.Tk(),font="times"):
+        self.root = root
+        self.root.title(f'{Categories.NAME} {Categories.VERSION}')
+        self.fullscreen = False
+
+        self.font = font
+
+        self.to_change = ""
+        self.color_tags = []
+        self.font_tags = []
+
+        self.root.protocol("WM_DELETE_WINDOW", lambda: SaveLoad.want_to_save(self.root))
+
+    # PAPER - main typing area
+        self.text_frame = tk.LabelFrame(self.root,width=0,height=0)
+        self.text_frame.pack(side=tk.LEFT,fill=tk.BOTH,expand=True)
+
+        self.paper = tk.scrolledtext.ScrolledText(
+            self.text_frame,
+            height=31,
+            font=self.font,
+            undo=True,
+            autoseparators=True,
+            wrap=tk.WORD
+        )
+
+        # Menu bar
+        Menu.Menu(self.root, self.paper)
+
+        self.paper.pack(fill=tk.BOTH,expand=True)
+
+    # RIGHT SIDE
+        self.attributes_frame = tk.Frame(self.root)
+        self.attributes_frame.pack(side=tk.RIGHT,fill=tk.BOTH,padx=5)
+
+        ## Find and Replace
+        FindReplace.FindReplace(self.attributes_frame,self.paper)
+
+        ## Font settings
+        FontSettings.FontSettings(self.attributes_frame,self.paper)
+
+        ## Align text
+        Align.Align(self.attributes_frame,self.paper)
+
+        ## Status bar
+        StatusBar.StatusBar(self.attributes_frame,self.paper)
+
+        self.root.bind("<Control-s>", lambda: SaveLoad.save_as(self.root))
+        self.root.bind("<Control-o>", lambda: SaveLoad.load(self.root))
+
+if __name__ == '__main__':
+    w = WordProcessor()
+    w.root.mainloop()
