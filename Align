@@ -1,0 +1,27 @@
+import tkinter as tk
+
+
+class Align:
+    def __init__(self,frame,paper):
+        self.frame = frame
+        self.paper = paper
+
+        align_buttons = {
+            "":lambda: self.align("lefttag"),
+            "":lambda: self.align("centertag"),
+            "":lambda: self.align("righttag"),
+        }
+        align_frame = tk.Frame(self.frame)
+        align_frame.pack(side=tk.TOP, fill=tk.BOTH, padx=(17, 0), pady=(5, 0))
+        for button in align_buttons:
+            _ = tk.Button(align_frame, text=button, font=15, command = align_buttons[button])
+            _.pack(side=tk.LEFT, fill=tk.BOTH)
+
+    def align(self,side: str):
+        sides = {'lefttag', 'centertag', 'righttag'}
+        sides.remove(side)
+
+        self.paper.tag_configure(side, justify=side[:-3])
+        for s in sides:
+            self.paper.tag_delete(s)
+        self.paper.tag_add(side, 1.0, "end")
