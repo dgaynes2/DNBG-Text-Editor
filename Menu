@@ -1,0 +1,241 @@
+import tkinter as tk
+from tkinter import ttk
+import time
+import subprocess
+import re
+import pyqrcode
+from translate import Translator
+
+import SaveLoad
+
+
+def populate_menu(menu_name: object, items: dict) -> None:
+    for item in items:
+        menu_name.add_command(
+            label=str(item),
+            command=items[item],
+            compound=tk.LEFT
+        )
+
+
+class Menu:
+    def __init__(self,root,paper):
+        self.root = root
+        self.paper = paper
+
+        self.menu_bar = tk.Menu(self.root)
+        self.root["menu"] = self.menu_bar
+
+        ## FILE
+        file_items = {
+            "Save as (Ctrl+S)": lambda: SaveLoad.save_as(self.root),
+            "Load (Ctrl+O)": lambda: SaveLoad.load(self.root),
+        }
+        file_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="File", menu=file_menu, compound=tk.LEFT)
+        populate_menu(file_menu, file_items)
+
+        ## EDIT
+        edit_items = {
+            "Spellcheck": self.spellcheck,
+            "Translate": self.translate_,
+        }
+        edit_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Edit", menu=edit_menu, compound=tk.LEFT)
+        populate_menu(edit_menu, edit_items)
+
+        ## VIEW
+        view_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="View", menu=view_menu, compound=tk.LEFT)
+
+        mode_items = {
+            "Light": self.light_mode,
+            "Dark": self.dark_mode,
+            "Retro": self.retro_mode,
+            "No Distractions": self.no_distractions_mode,
+        }
+        mode_menu = tk.Menu(view_menu, tearoff=0)
+        view_menu.add_cascade(label="Mode", menu=mode_menu, compound=tk.LEFT)
+        populate_menu(mode_menu, mode_items)
+
+        ## FORMAT
+        format_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Format", menu=format_menu, compound=tk.LEFT)
+        format_menu.add_command(label="Default Format", command=self.default_formatting)
+        format_menu.add_separator()
+
+        ### SPACING
+        spacing_types = {
+            'None': 0, '0.5': 5, '1.0': 10, '1.25': 12.5, '1.5': 15, '2.0': 20, '2.5': 25,
+        }
+        spacing_menu = tk.Menu(format_menu, tearoff=0)
+        format_menu.add_cascade(label="Line Spacing", menu=spacing_menu, compound=tk.LEFT)
+        populate_menu(spacing_menu, spacing_types)
+
+        ### HIGHLIGHT
+        highlight_add_options = {
+            "Default": lambda: self.highlight("white", "black"),
+            "Inverted": lambda: self.highlight("black", "white"),
+            "Yellow": lambda: self.highlight("yellow", "black")
+        }
+        highlight_remove_options = {
+            'Remove all': lambda: self.remove_all_highlights(),
+            'Remove selected': lambda: self.remove_selected()
+        }
+        highlight_tagging_menu = tk.Menu(format_menu, tearoff=0)
+        format_menu.add_cascade(label="Highlight", menu=highlight_tagging_menu, compound=tk.LEFT)
+        populate_menu(highlight_tagging_menu, highlight_add_options)
+        highlight_tagging_menu.add_separator()
+        populate_menu(highlight_tagging_menu, highlight_remove_options)
+
+        ### PIZZAZZ
+        pizzazz_add_options = {
+            "Default": lambda: self.pizzazz_set_tag("normal"),
+            "Bold": lambda: self.pizzazz_set_tag("bold"),
+            "Italics": lambda: self.pizzazz_set_tag("italic"),
+            "Underline": lambda: self.pizzazz_set_tag("underline"),
+        }
+        pizzazz_remove_options = {
+            "Remove all": lambda: self.remove_all_pizzazz(),
+            "Remove selected": lambda: self.remove_selected(),
+        }
+        pizzazz_tagging_menu = tk.Menu(format_menu, tearoff=0)
+        format_menu.add_cascade(label="Pizzazz", menu=pizzazz_tagging_menu, compound=tk.LEFT)
+        populate_menu(pizzazz_tagging_menu, pizzazz_add_options)
+        pizzazz_tagging_menu.add_separator()
+        populate_menu(pizzazz_tagging_menu, pizzazz_remove_options)
+
+        ### CASE
+        case_options = {
+            "Upper": lambda: self.change_case("upper"),
+            "Lower": lambda: self.change_case("lower"),
+            "Title": lambda: self.change_case("title"),
+        }
+        upper_lower_menu = tk.Menu(format_menu, tearoff=0)
+        format_menu.add_cascade(label="Change Case", menu=upper_lower_menu, compound=tk.LEFT)
+        populate_menu(upper_lower_menu, case_options)
+
+        ## INSERT
+        insert_options = {
+            "Time": lambda: self.get_time(),
+            "Date": lambda: self.get_date(),
+            "Time and Date": lambda: self.get_time_and_date()
+        }
+        insert_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Insert", menu=insert_menu, compound=tk.LEFT)
+        populate_menu(insert_menu, insert_options)
+        insert_menu.add_separator()
+        insert_menu.add_command(label="Special Character", command=self.char_map)
+
+        ## HELP
+        help_items = {
+            "About": self.about,
+            "QRcode": self.text_to_qrcode
+        }
+        help_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Help", menu=help_menu, compound=tk.LEFT)
+        populate_menu(help_menu, help_items)
+
+    def spellcheck(self):
+        print('Spellcheck')
+
+    def translate_(self):
+        print('Translate')
+
+    def light_mode(self):
+        self.paper.config(bg="white",fg="black",font=self.root.font)
+
+    def dark_mode(self):
+        self.paper.config(bg="black",fg="white",font=self.root.font)
+
+    def retro_mode(self):
+        self.paper.config(bg="grey10",fg="lightgreen",font=["Terminal", 20, "normal"])
+
+    def no_distractions_mode(self):
+        self.root.attributes_frame.pack_forget()
+
+    def double_space(self,spacing: int):
+        print("Double spacing")
+        self.paper.tag_add("whole","2.0","end-1c")
+        self.paper.tag_configure("whole",spacing1=spacing)
+
+    def highlight(self,bg_color: str,word_color: str):
+        self.paper.tag_add(f"{bg_color}{word_color}", tk.SEL_FIRST, tk.SEL_LAST)
+        self.paper.tag_configure(f"{bg_color}{word_color}", background=bg_color, foreground=word_color)
+        if f"{bg_color}{word_color}" not in self.root.color_tags:
+            self.root.color_tags.append(f"{bg_color}{word_color}")
+
+    def remove_all_highlights(self):  # doesn't include line spacing or font settings
+        for i in self.root.color_tags:
+            self.paper.tag_delete(i)
+
+    def pizzazz_set_tag(self,tag):
+        self.paper.tag_add(tag, tk.SEL_FIRST, tk.SEL_LAST)
+        self.paper.tag_configure(tag, font=[self.root.font_name.get(), self.root.font_size.get(), tag])
+        if tag not in self.root.font_tags:
+            self.root.font_tags.append(tag)
+
+    def remove_all_pizzazz(self):  # doesn't include line spacing or highlight settings
+        for i in self.root.font_tags:
+            self.paper.tag_delete(i)
+
+    def remove_selected(self):  # currently applies to all highlights of same color.  How to change?
+        for tag in self.paper.tag_names():
+            span = re.findall(r"\d*\.\d*", str(self.paper.tag_ranges(tag)))
+            if len(span) > 0:
+                if span[0] <= self.paper.index(tk.INSERT) <= span[1]:
+                    self.paper.tag_delete(tag)
+
+    def default_formatting(self):  # clear all tags
+        for i in self.paper.tag_names():
+            self.paper.tag_delete(i)
+
+    def change_case(self,case: str):
+        n = self.paper.get(1.0,"end=1c")
+        match case:
+            case "upper":
+                n = n.upper()
+            case "lower":
+                n = n.lower()
+            case "title":
+                n = n.title()
+        self.paper.delete(1.0,"end-1c")
+        self.paper.insert("end-1c",n)
+
+    def get_time(self):
+        self.paper.insert(tk.INSERT, time.strftime("%H:%M:%S"))
+
+    def get_date(self):
+        self.paper.insert(tk.INSERT, time.strftime("%d-%m-%y"))
+
+    def get_time_and_date(self):
+        self.paper.insert(tk.INSERT,time.strftime("%c"))
+
+    def char_map(self):
+        subprocess.call("C:\WINDOWS\system32\charmap.exe")
+
+    def about(self):
+        about_win = tk.Tk()
+        about_win.resizable(False,False)
+        about_win.update()
+        about_win.geometry(
+            f"450x135+"
+            f"{(self.root.winfo_x() + self.root.winfo_width() // 2) - about_win.winfo_width()}+"
+            f"{(self.root.winfo_y() + self.root.winfo_height() // 2 - about_win.winfo_height() // 4)}"
+        )
+        about_note = ttk.Label(
+            about_win,justify="left",
+            text= f"Filler text"
+        )
+        about_note.pack(fill=tk.BOTH,padx=5,pady=1)
+
+    def text_to_qrcode(self):
+        print('Qrcode')
+        # to_convert = self.paper.get(0.0,"end-1c")
+        # to_scan = pyqrcode.create(to_convert,encoding="utf-8")
+        # to_scan.png("My QRcode.png",scale=6)
+        #
+        # from PIL import Image
+        #
+        # img = Image.open("My QRcode.png")
+        # img.show()
