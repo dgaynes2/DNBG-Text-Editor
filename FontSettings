@@ -1,0 +1,73 @@
+import tkinter as tk
+from tkinter import ttk
+
+import Categories
+
+
+def combo_box(frame, items):
+    return ttk.Combobox(
+        frame,
+        values=items,
+        state="readonly",
+        width=17
+    )
+
+
+class Section:
+    def __init__(self,frame,labeltext,cbox,current=None):
+        self.frame = frame
+        self.frame.pack(side=tk.TOP, fill=tk.BOTH)
+
+        # Frame
+        self.font_attr_frame = tk.Frame(self.frame)
+        self.font_attr_frame.pack(side=tk.TOP, fill=tk.BOTH)
+        # Label
+        self.font_attr_lbl = tk.Label(self.font_attr_frame, text=labeltext)
+        self.font_attr_lbl.pack(side=tk.TOP, fill=tk.BOTH)
+        # Combobox
+        self.font_attr = combo_box(self.frame, cbox)
+        self.font_attr.pack(side=tk.TOP, fill=tk.BOTH)
+        if current is not None:
+            self.font_attr.current(current)
+
+    def get_value(self):
+        return self.font_attr.get()
+
+
+class FontSettings:
+    def __init__(self,frame,paper):
+        self.frame = frame
+        self.paper = paper
+
+        self.font_frame = tk.Frame(self.frame)
+        self.font_frame.pack(side=tk.TOP, fill=tk.BOTH)
+
+        ### NAME
+        self.fname = Section(self.font_frame,"Font name",Categories.FONT_NAMES,43)
+
+        ### SIZE
+        self.fsize = Section(self.font_frame,"Font size",Categories.FONT_SIZES,3)
+
+        ### COLOR
+        self.fcolor = Section(self.font_frame,"Font color",Categories.FONT_COLORS,0)
+
+        ### EXTRA
+        self.fextra = Section(self.font_frame,"Pizzazz",Categories.FONT_OTHER)
+
+        ### FONT BUTTON
+        self.font_btn = ttk.Button(self.font_frame, text="Set font", command=self.font_set)
+        self.font_btn.pack(side=tk.TOP, fill=tk.BOTH, pady=(5, 0))
+
+    def font_set(self):
+        N = str(self.fname.get_value())
+        S = int(self.fsize.get_value())
+        X = str(self.fextra.get_value())
+        C = str(self.fcolor.get_value())
+
+        if self.paper.index(tk.SEL_FIRST) == self.paper.index(tk.SEL_LAST):
+            # change all if not selected
+            self.paper.config(font = (N,S,X), fg = C)
+        else:
+            # change selected
+            self.paper.tag_add("dn",tk.SEL_FIRST,tk.SEL_LAST)
+            self.paper.tag_configure("dn",font=(N, S, X), fg=C)
