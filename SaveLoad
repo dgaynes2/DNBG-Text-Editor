@@ -1,0 +1,58 @@
+import tkinter as tk
+from tkinter import ttk, filedialog
+
+def save_as(root):
+    to_save = filedialog.asksaveasfile(
+        mode="w",
+        initialfile=".txt",
+        filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")],
+    )
+    save_info = f'{root.font_name.get()}\n{root.font_size.get()}\n{root.font_extra.get()}\n{root.font_color.get()}\n{root.paper.get(0.0, "end-1c")}'
+    to_save.write(save_info)
+    to_save.close()
+
+def load(root):
+    to_load = filedialog.askopenfile(
+        mode="r",
+        defaultextension=".txt",
+        filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")],
+    ).read()
+    root.paper.replace(0.0, "end-1c", to_load)
+
+    try:
+        root.paper.config(
+            font=(  # set font
+                root.paper.get(1.0, 1.999),
+                root.paper.get(2.0, 1.999),
+                root.paper.get(3.0, 1.999),
+            ),
+            fg=root.paper.get(4.0, 4.999)
+        )
+    except:
+        root.paper.config(font="TkDefaultFont")
+    # remove font metadata
+    root.paper.delete(0.0, 5.0)
+
+def want_to_save(root):
+    def win_close():
+        wts.destroy()
+        root.destroy()
+
+    def save_as_2():
+        wts.destroy()
+        save_as(root)
+
+    wts = tk.Tk()
+    wts.resizable(False,False)
+    wts.update()
+    wts.geometry(
+        f"160x48+"
+        f"{(root.winfo_x() + root.winfo_width() // 2) - wts.winfo_width() // 2}+"
+        f"{(root.winfo_y() + root.winfo_height() // 2)}"
+    )
+    message = ttk.Label(wts,text="Do you want to save?")
+    message.grid(row=0,column=0,columnspan=2,padx=2)
+    yes = ttk.Button(wts,text="Yes",command=save_as_2)
+    yes.grid(row=1,column=0,sticky=tk.EW,padx=2)
+    no = ttk.Button(wts,text="No",command=win_close)
+    no.grid(row=1,column=1,sticky=tk.EW,padx=2)
