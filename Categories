@@ -1,0 +1,29 @@
+
+NAME = 'DNBG'
+VERSION = 1.0
+
+FONT_NAMES = [
+    "8514oem",
+    "Arial","Arabic Transparent","Arial Baltic","Arial CE","Arial CYR",
+    "Arial Greek","Arial TUR","Arial Black","Bahnschrift","Calibri",
+    "Calibri Light","Cambria","Cambria Math","Candara","Comic Sans MS",
+    "Consolas","Constantia","Corbel","Corbel Light","Courier",
+    "Courier New","Ebrima","Fixedsys","Franklin Gothic Medium","Gabriola",
+    "Gadugi","Georgia","Impact","Marlett","Modern",
+    "MS Gothic","MS Serif","MS Sans Serif","Roman","Script",
+    "Segoe","Small Fonts","Symbol","System","TeamViewer15",
+    "Terminal","Tahoma","Times New Roman","Verdana","Webdings",
+    "Wingdings",
+            ]
+
+FONT_SIZES = ["8", "10", "11", "12", "14", "16", "18", "20", "24", "36", "72", ]
+
+FONT_COLORS = [
+    "black","white",
+    "red","blue",
+    "green","yellow",
+    "orange","purple",
+    "pink","gray",
+            ]
+
+FONT_OTHER = ["normal", "bold", "italic", "underline"]
